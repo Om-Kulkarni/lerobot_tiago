@@ -4,8 +4,9 @@
 @brief Configuration dataclass for the TiagoClient.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from lerobot.robots.config import RobotConfig
+from lerobot.cameras import CameraConfig
 
 @RobotConfig.register_subclass("tiago_client")
 @dataclass
@@ -21,4 +22,7 @@ class TiagoClientConfig(RobotConfig):
     
     # Timeout in seconds for establishing the initial connection.
     connect_timeout_s: float = 5.0
+
+    # Configuration for cameras connected to the client machine.
+    cameras: dict[str, CameraConfig] = field(default_factory=dict)
 
