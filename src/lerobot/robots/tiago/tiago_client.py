@@ -156,7 +156,31 @@ class TiagoClient(Robot):
     
     # These methods are part of the Robot base class but are not needed for a simple client.
     def calibrate(self) -> None:
-        pass
+        """
+        Sends a calibration command to the host and waits for confirmation.
+        This blocks until the robot reports that it is in its home position.
+        """
+        if not self.is_connected:
+            raise DeviceNotConnectedError("Cannot calibrate. Client is not connected.")
+
+        try:
+            logging.info("Sending calibration command to host...")
+            self._send_msg('calibrate')
+
+            # Wait for the confirmation message
+            response_data = self._recv_msg()
+            if response_data is None:
+                raise DeviceNotConnectedError("Host closed the connection during calibration.")
+
+            response = pickle.loads(response_data)
+            if response == 'calibration_complete':
+                logging.info("Calibration successful. Robot is at home position.")
+            else:
+                logging.warning(f"Received unexpected response during calibration: {response}")
+
+        except (socket.error, pickle.UnpicklingError) as e:
+            self.disconnect()
+            raise DeviceNotConnectedError(f"Connection to host lost during calibration: {e}")
 
     def configure(self) -> None:
         pass

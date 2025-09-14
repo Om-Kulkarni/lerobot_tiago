@@ -65,22 +65,31 @@ def main():
 
                 try:
                     while not rospy.is_shutdown():
-                        # 2. Receive an action from the client
-                        action_data = recv_msg(conn)
-                        if not action_data:
+                        # 2. Receive a message from the client
+                        message_data = recv_msg(conn)
+                        if not message_data:
                             rospy.logwarn("Client disconnected.")
                             break
                         
-                        action = pickle.loads(action_data)
+                        message = pickle.loads(message_data)
 
-                        # 3. Send the action to the robot hardware
-                        robot.send_action(action)
-
-                        # 4. Get the latest observation from the robot
-                        observation = robot.get_observation()
-
-                        # 5. Send the observation back to the client
-                        send_msg(conn, observation)
+                        # Check if the message is a calibration command or a regular action
+                        if isinstance(message, str) and message == 'calibrate':
+                            rospy.loginfo("Calibration command received. Moving to home position.")
+                            robot.go_to_home_position()
+                            # Send a simple confirmation back to the client
+                            send_msg(conn, 'calibration_complete')
+                            rospy.loginfo("Calibration complete. Confirmation sent.")
+                        
+                        elif isinstance(message, dict):
+                            # It's a regular action, proceed as before
+                            action = message
+                            robot.send_action(action)
+                            observation = robot.get_observation()
+                            send_msg(conn, observation)
+                        
+                        else:
+                            rospy.logwarn("Received unknown message format from client.")
 
                 except (socket.error, pickle.UnpicklingError) as e:
                     rospy.logerr("An error occurred during communication: {}".format(e))
