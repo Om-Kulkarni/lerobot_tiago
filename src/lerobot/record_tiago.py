@@ -10,9 +10,8 @@ Example Usage:
 
 ```shell
 python record_tiago.py \
-    --robot.type=tiago_client \
-    --robot.remote_ip="10.68.0.1" \
-    --robot.cameras='{my_camera: {type: realsense, width: 640, height: 480, fps: 30}}' \
+    --remote_ip="10.68.0.1" \
+    --cameras='{my_camera: {type: realsense, width: 640, height: 480, fps: 30}}' \
     --teleop.type=so101_leader \
     --teleop.port=/dev/tty.usbmodem1234561 \
     --dataset.repo_id="your-hf-username/tiago-pick-and-place" \
@@ -26,7 +25,7 @@ Before running, ensure the `tiago_host.py` script is running on the robot's comp
 
 import logging
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from pprint import pformat
 
@@ -58,9 +57,13 @@ from lerobot.utils.visualization_utils import _init_rerun, log_rerun_data
 
 # Import Tiago client to ensure it's registered with the factory
 from .robots.tiago.tiago_client import TiagoClient  # noqa: F401
+from .robots.tiago.config_tiago import TiagoClientConfig  # noqa: F401
 
 # Import the SO-101 leader teleoperator
 from lerobot.teleoperators import so101_leader  # noqa: F401
+
+# Import camera configs
+from lerobot.cameras import CameraConfig
 
 
 @dataclass
@@ -82,6 +85,10 @@ class DatasetRecordConfig:
     num_image_writer_threads_per_camera: int = 4
     video_encoding_batch_size: int = 1
 
+    # Tiago-specific arguments
+    remote_ip: str = "10.68.0.1"
+    cameras: dict[str, CameraConfig] = field(default_factory=dict)
+
     def __post_init__(self):
         if self.single_task is None:
             raise ValueError("You must provide a task description in `single_task`.")
@@ -91,7 +98,7 @@ class DatasetRecordConfig:
 class RecordConfig:
     """Top-level configuration for the recording script."""
 
-    robot: RobotConfig
+    
     dataset: DatasetRecordConfig
     teleop: TeleoperatorConfig | None = None
     policy: PreTrainedConfig | None = None
@@ -188,7 +195,13 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
     if cfg.display_data:
         _init_rerun(session_name="tiago_recording")
 
-    robot = make_robot_from_config(cfg.robot)
+    # Initialize the Tiago client with hardcoded configuration
+    robot_config = TiagoClientConfig(
+        remote_ip=cfg.dataset.remote_ip,
+        cameras=cfg.dataset.cameras,
+    )
+    robot = TiagoClient(robot_config)
+
     teleop = make_teleoperator_from_config(cfg.teleop) if cfg.teleop is not None else None
 
     action_features = hw_to_dataset_features(robot.action_features, "action", cfg.dataset.video)
