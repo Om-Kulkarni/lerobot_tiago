@@ -71,6 +71,10 @@ from lerobot.cameras import CameraConfig
 # Import action mapping and formatting functions from teleoperate_tiago
 from .teleoperate_tiago import get_tiago_joint_limits, map_leader_to_tiago, format_action_for_tiago
 
+# Send an initial action to establish the connection before trying to get observations
+DEFAULT_TORSO_POS = 0.30  # meters
+DEFAULT_ARM_POSITIONS = [1.61, -0.93, -3.14, 1.83, -1.58, -0.62, -1.58]  # radians
+
 
 @dataclass
 class DatasetRecordConfig:
@@ -151,10 +155,6 @@ def record_loop(
     
     # Get joint limits for mapping
     joint_limits = get_tiago_joint_limits()
-
-    # Send an initial action to establish the connection before trying to get observations
-    DEFAULT_TORSO_POS = 0.30  # meters
-    DEFAULT_ARM_POSITIONS = [1.61, -0.93, -3.14, 1.83, -1.58, -0.62, -1.58]  # radians
     
     # Create an initial neutral action using the default positions
     initial_action = {
