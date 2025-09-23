@@ -11,8 +11,8 @@
 import socket
 import struct
 import pickle
-import rospy
-from tiago import Tiago  
+import rospy # type: ignore
+from tiago import Tiago   # type: ignore
 
 # Socket configuration
 HOST = '0.0.0.0'  # Listen on all available network interfaces

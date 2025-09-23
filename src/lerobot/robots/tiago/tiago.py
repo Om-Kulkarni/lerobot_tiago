@@ -7,7 +7,7 @@
          and for gathering sensor observations. It is designed to be used by a network host script.
 """
 
-import rospy
+import rospy # type: ignore
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
