@@ -151,6 +151,24 @@ def record_loop(
     
     # Get joint limits for mapping
     joint_limits = get_tiago_joint_limits()
+
+    # Send an initial action to establish the connection before trying to get observations
+    DEFAULT_TORSO_POS = 0.30  # meters
+    DEFAULT_ARM_POSITIONS = [1.61, -0.93, -3.14, 1.83, -1.58, -0.62, -1.58]  # radians
+    
+    # Create an initial neutral action using the default positions
+    initial_action = {
+        'arm_joint_positions': DEFAULT_ARM_POSITIONS,
+        'torso_lift_joint.pos': DEFAULT_TORSO_POS,
+        'base_linear_velocity': 0.0,
+        'base_angular_velocity': 0.0,
+        'gripper_command': 1,  # 1 = open
+    }
+    
+    # Send the initial action to establish connection and get first observation
+    print("Sending initial action to establish connection...")
+    robot.send_action(initial_action)
+    print("Initial action sent successfully")
     
     while timestamp < control_time_s:
         start_loop_t = time.perf_counter()
