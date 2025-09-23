@@ -127,7 +127,7 @@ def format_action_for_tiago(mapped_action: dict):
 
     # Convert gripper position to a binary command (1: open, 2: close)
     gripper_pos = mapped_action.get("gripper_right_finger_joint", 0.0)
-    gripper_command = 1 if gripper_pos > 0.0225 else 2  # Threshold is halfway
+    gripper_command = 1 if gripper_pos > 0.0334 else 2  # Threshold is halfway
 
     return {
         "arm_joint_positions": arm_positions,
