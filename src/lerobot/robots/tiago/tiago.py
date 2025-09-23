@@ -51,7 +51,7 @@ class Tiago:
                 # UPDATED: Now includes gripper joints in the observation
                 if 'arm' in name or 'torso' in name or 'gripper' in name:
                     # Storing with a '.pos' suffix for consistency
-                    self._latest_observation[f"{name}.pos"] = msg.position[i]
+                    self._latest_observation["{}.pos".format(name)] = msg.position[i]
 
     def _odom_callback(self, msg):
         """Callback to update the latest base velocities."""
@@ -88,13 +88,9 @@ class Tiago:
                            }
         """
 
-        if 'arm_joint_positions' in action and len(action['arm_joint_positions']) == 5:
-            # Pad the 5-DOF command to 7-DOF for Tiago's controller.
-            # THIS MUST BE ADJUSTED BASED ON YOUR ACTUAL 5-DOF SETUP
-            full_arm_positions = list(action['arm_joint_positions'])
-            full_arm_positions.insert(2, 0.0) # Example: arm_3_joint fixed at 0.0
-            full_arm_positions.insert(5, 0.0) # Example: arm_6_joint fixed at 0.0
-            self._send_arm_command(full_arm_positions)
+        if 'arm_joint_positions' in action and len(action['arm_joint_positions']) == 7:
+            # The client is already sending a 7-DOF command, so no padding is needed.
+            self._send_arm_command(action['arm_joint_positions'])
 
         if 'torso_lift_joint.pos' in action:
             self._send_torso_command(action['torso_lift_joint.pos'])
@@ -125,7 +121,7 @@ class Tiago:
     def _send_arm_command(self, arm_positions):
         """Sends a command to the arm."""
         traj = JointTrajectory()
-        traj.joint_names = [f'arm_{i}_joint' for i in range(1, 8)]
+        traj.joint_names = ['arm_{}_joint'.format(i) for i in range(1, 8)]
         point = JointTrajectoryPoint()
         point.positions = arm_positions
         point.time_from_start = rospy.Duration(0.5)
