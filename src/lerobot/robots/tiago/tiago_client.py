@@ -191,7 +191,7 @@ class TiagoClient(Robot):
 
         try:
             logging.info("Sending calibration command to host...")
-            self._send_msg('calibrate')
+            self._send_msg(b'calibrate')
             response_data = self._recv_msg()
             if response_data is None:
                 raise DeviceNotConnectedError("Host closed the connection during calibration.")
