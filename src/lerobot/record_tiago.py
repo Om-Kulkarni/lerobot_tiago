@@ -33,6 +33,7 @@ from pathlib import Path
 from pprint import pformat
 
 # LeRobot imports
+from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.configs import parser
 from lerobot.configs.policies import PreTrainedConfig
 from lerobot.datasets.image_writer import safe_stop_image_writer
@@ -84,10 +85,10 @@ class DatasetRecordConfig:
     single_task: str
     root: str | Path | None = None
     fps: int = 30
-    episode_time_s: int | float = 60
-    reset_time_s: int | float = 10  # Reduced reset time for manual reset
-    num_episodes: int = 50
-    video: bool = True
+    episode_time_s: int | float = 10
+    reset_time_s: int | float = 5  # Reduced reset time for manual reset
+    num_episodes: int = 5
+    video: bool = False
     push_to_hub: bool = True
     private: bool = False
     tags: list[str] | None = None
@@ -96,8 +97,20 @@ class DatasetRecordConfig:
     video_encoding_batch_size: int = 1
 
     # Tiago-specific arguments
-    remote_ip: str = "10.68.0.1"
-    cameras: dict[str, CameraConfig] = field(default_factory=dict)
+    # remote_ip: str = "10.68.0.1"
+    remote_ip: str = "172.17.0.2"
+    #cameras: dict[str, CameraConfig] = field(default_factory=dict)
+    cameras: dict[str, CameraConfig] = field(
+        default_factory=lambda: {
+            "left": OpenCVCameraConfig(
+                index_or_path=4,
+                width=640,
+                height=480,
+                fps=30
+            )
+        }
+    )
+
 
     def __post_init__(self):
         if self.single_task is None:
